@@ -1,6 +1,6 @@
 import { DrawerContentScrollView, DrawerItem } from '@react-navigation/drawer';
 import React, { useState } from 'react';
-import { View, StyleSheet, Image, Switch } from 'react-native';
+import { View, StyleSheet, Image, Switch,Alert } from 'react-native';
 import axios from "axios";
 import config from '../../config.json'
 import { Button, Icon } from '@rneui/themed';
@@ -21,6 +21,26 @@ const CustomeDrawer = (props) => {
     function Captilizer(str) {
         return str.charAt(0).toUpperCase() + str.slice(1)
     }
+    const showConfirmDialog = () => {
+        return Alert.alert(
+          "Are your sure?",
+          "Do you want to logout?",
+          [
+            // The "Yes" button
+            {
+              text: "Yes",
+              onPress: () => {
+                props.navigation.navigate('Login')
+              },
+            },
+            // The "No" button
+            // Does nothing but dismiss the dialog when tapped
+            {
+              text: "No",
+            },
+          ]
+        );
+      };
     function Parser(field) {
         // console.log(JSON.parse(Ud)[field]);
         // (type=='reviewer')?Rdata:Ud
@@ -73,7 +93,7 @@ const CustomeDrawer = (props) => {
             </View>
             <View style={{ display: 'flex', flexDirection: 'row', justifyContent: 'space-evenly' }}>
 
-                <Button radius={'lg'} type="solid" onPress={() => { props.navigation.navigate('Login') }} color="error" >
+                <Button radius={'lg'} type="solid" onPress={() => { showConfirmDialog() }} color="error" >
                     Logout
                     <Icon style={{ marginLeft: 5 }} name="logout" color="white" />
                 </Button>

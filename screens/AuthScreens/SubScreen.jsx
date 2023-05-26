@@ -11,7 +11,7 @@ import * as FileSystem from 'expo-file-system';
 
 const SubScreen = ({ navigation, Udata }) => {
     const downloadFile = async (url) => {
-        console.log(FileSystem.documentDirectory);
+        console.warn(FileSystem.documentDirectory);
         const fileUri = FileSystem.documentDirectory + 'file.pdf';
         const downloadObject = FileSystem.createDownloadResumable(url, fileUri);
         const { uri } = await downloadObject.downloadAsync();
@@ -31,134 +31,202 @@ const SubScreen = ({ navigation, Udata }) => {
             <ScrollView>
 
                 <View style={styles.block} >
+                    {(JSON.parse(Udata)['title']).length > 0 ? <>
+                        <Text style={styles.textSetting}>
+                            <Text style={styles.heading}>PaperID -</Text>
+                            {Parser('paperID')}</Text>
 
-                    <Text style={styles.textSetting}>
-                        <Text style={styles.heading}>PaperID -</Text>
-                        {Parser('paperID')}</Text>
-
-                    <Text style={styles.textSetting}>
-                        <Text style={styles.heading}>Title -</Text>
-                        {Parser('title')}</Text>
-                    {/* <Text style={styles.textSetting}>
+                        <Text style={styles.textSetting}>
+                            <Text style={styles.heading}>Title -</Text>
+                            {Parser('title')}</Text>
+                        {/* <Text style={styles.textSetting}>
                         <Text style={styles.heading}>Abstract -</Text>
                         {Parser('abstract')}</Text> */}
-                    <Text style={styles.textSetting}>
-                        <Text style={styles.heading}>Key Words -</Text>
-                        {Parser('otherKeyword')}</Text>
+                        <Text style={styles.textSetting}>
+                            <Text style={styles.heading}>Key Words -</Text>
+                            {Parser('otherKeyword')}</Text>
 
-                    <View style={styles.yon1}>
-                        <Text style={styles.heading}>Group Submission  -
-                        </Text>
-                        {(JSON.parse(Udata)['groupSubmission']) ? <>
-                            <View style={[styles.yon, { backgroundColor: 'green' }]} >
-                                <Icon name={'done'} size={20} color="#ffffff" />
-                                <Text style={{ color: 'white' }} >
-                                    yes</Text>
-                            </View>
-                        </> : <>
-                            <View style={[styles.yon, { backgroundColor: 'red' }]} >
-                                <Icon name={'highlight-off'} size={20} color="#ffffff" />
-                                <Text style={{ color: 'white' }} >
-                                    No</Text>
-                            </View></>}
-                    </View>
-
-                    <View style={styles.yon1}>
-                        <Text style={styles.heading}>Document Included ? -
-                        </Text>
-                        {(JSON.parse(Udata)['document']).length > 5 ? <>
-                            <View style={[styles.yon, { backgroundColor: 'green' }]} >
-                                <Icon name={'done'} size={20} color="#ffffff" />
-                                <Text style={{ color: 'white' }} >
-                                    yes</Text>
-                            </View>
-                            <Button onPress={()=>downloadFile(JSON.parse(Udata)['document'])} title={'download file'}></Button>
-
-                        </> : <>
-                            <View style={[styles.yon, { backgroundColor: 'red' }]} >
-                                <Icon name={'highlight-off'} size={20} color="#ffffff" />
-                                <Text style={{ color: 'white' }} >
-                                    No</Text>
-                            </View></>}
-                    </View>
-                    <View style={styles.yon1}>
-                        <Text style={styles.heading}>Status -
-                        </Text>
-                        {(JSON.parse(Udata)['approved']) == "Pending" ? <>
-                            <View style={[styles.yon, { backgroundColor: '#ffa200' }]} >
-                                <Text style={{ color: 'white' }} >
-                                    Pending</Text>
-                            </View>
-                        </> : <>
-                            {(JSON.parse(Udata)['approved']) == "Approved" ? <>
+                        <View style={styles.yon1}>
+                            <Text style={styles.heading}>Group Submission  -
+                            </Text>
+                            {(JSON.parse(Udata)['groupSubmission']) ? <>
                                 <View style={[styles.yon, { backgroundColor: 'green' }]} >
-                                    <Icon name={'check-circle'} size={20} color="#ffffff" />
-
+                                    <Icon name={'done'} size={20} color="#ffffff" />
                                     <Text style={{ color: 'white' }} >
-                                        Approved</Text>
+                                        yes</Text>
                                 </View>
                             </> : <>
                                 <View style={[styles.yon, { backgroundColor: 'red' }]} >
+                                    <Icon name={'highlight-off'} size={20} color="#ffffff" />
                                     <Text style={{ color: 'white' }} >
-                                        Rejected</Text>
-                                </View></>}</>}
-                    </View>
-                    {JSON.parse(Udata)['reviewerApproval'].forEach(element => {
-                        <Text>Came Here</Text>
-                    })}
-                    {/* {(JSON.parse(Udata)['approved'] == 'Approved') ? */}
-                    {(true) ?
-                        <Text style={styles.textSetting}>
-                            {(JSON.parse(Udata)['reviewerApproval']).map((element, count) => (
+                                        No</Text>
+                                </View></>}
+                        </View>
 
-                                <View key={count} style={styles.rewF}>
-                                    <Text style={[{
-                                        textAlign: 'center', color: 'green',
-                                        fontWeight: 'bold', marginTop: 10,
-                                    }]}>{count + 1} Reviewer Feedback</Text>
-                                    {
-                                        Object.keys(element).map((i, index) => (
-                                            <View key={index}>
-
-                                                {(i == 'email' || i == 'approve') ? <></> : <>
-                                                    <TouchableOpacity style={styles.table} onPress={() => { setclicked([count, index]) }} >
-
-                                                        <View style={{ width: Dimensions.get('screen').width / 2.3, borderColor: 'black', borderWidth: 1 }}>
-                                                            <Text style={{ textAlign: 'center', paddingVertical: 10 }}>{i}</Text>
-                                                        </View>
-                                                        <View style={{ width: Dimensions.get('screen').width / 2.3, borderColor: 'black', borderWidth: 1 }}>
-                                                            <Text style={{ textAlign: 'center', paddingVertical: 10 }}>
-                                                                {element[i].points}
-                                                            </Text>
-                                                        </View>
-
-                                                    </TouchableOpacity>
-                                                    {(clicked[0] == count && clicked[1] == index) ? <>
-                                                        <TouchableOpacity onPress={() => { setclicked(10, 10) }} style={{ width: Dimensions.get('screen').width - 47, borderBottomLeftRadius: 25, borderBottomRightRadius: 25, overflow: 'hidden' }}>
-                                                            <Text style={{ textAlign: 'center', color: 'white', paddingHorizontal: 10, padding: 5, backgroundColor: '#502a2aa8', borderBottomEndRadius: 20, }}>
-                                                                comments -   {element[i].comments}
-                                                            </Text>
-                                                        </TouchableOpacity>
-                                                    </> : null}
-
-                                                    {/* <Text style={[styles.heading,{margin:5, fontWeight: 'bold' }]}>{i} - {element[i].points}</Text>
-                                            <Text>comments - {element[i].comments}</Text> */}
-                                                </>}
-                                            </View>
-                                        ))
-                                    }
+                        <View style={styles.yon1}>
+                            <Text style={styles.heading}>Document Included ? -
+                            </Text>
+                            {(JSON.parse(Udata)['document']).length > 5 ? <>
+                                <View style={[styles.yon, { backgroundColor: 'green' }]} >
+                                    <Icon name={'done'} size={20} color="#ffffff" />
+                                    <Text style={{ color: 'white' }} >
+                                        yes</Text>
                                 </View>
-                            ))}
-                        </Text>
-                        : null}
+                                <Button onPress={() => downloadFile(JSON.parse(Udata)['document'])} title={'download file'}></Button>
+
+                            </> : <>
+                                <View style={[styles.yon, { backgroundColor: 'red' }]} >
+                                    <Icon name={'highlight-off'} size={20} color="#ffffff" />
+                                    <Text style={{ color: 'white' }} >
+                                        No</Text>
+                                </View></>}
+                        </View>
+                        <View style={styles.yon1}>
+                            <Text style={styles.heading}>Status -
+                            </Text>
+                            {(JSON.parse(Udata)['approved']) == "Pending" ? <>
+                                <View style={[styles.yon, { backgroundColor: '#ffa200' }]} >
+                                    <Text style={{ color: 'white' }} >
+                                        Pending</Text>
+                                </View>
+                            </> : <>
+                                {(JSON.parse(Udata)['approved']) == "Approved" ? <>
+                                    <View style={[styles.yon, { backgroundColor: 'green' }]} >
+                                        <Icon name={'check-circle'} size={20} color="#ffffff" />
+
+                                        <Text style={{ color: 'white' }} >
+                                            Approved</Text>
+                                    </View>
+                                </> : <>
+                                    <View style={[styles.yon, { backgroundColor: 'red' }]} >
+                                        <Text style={{ color: 'white' }} >
+                                            Rejected</Text>
+                                    </View></>}</>}
+                        </View>
+                        {JSON.parse(Udata)['reviewerApproval'].forEach(element => {
+                            <Text>Came Here</Text>
+                        })}
+                        {/* {(JSON.parse(Udata)['approved'] == 'Approved') ? */}
+                        {(true) ?
+                            <Text style={styles.textSetting}>
+                                {(JSON.parse(Udata)['reviewerApproval']).map((element, count) => (
+
+                                    <View key={count} style={styles.rewF}>
+                                        <Text style={[{
+                                            textAlign: 'center', color: 'green',
+                                            fontWeight: 'bold', marginTop: 10,
+                                        }]}>{count + 1} Reviewer Feedback</Text>
+                                        {
+                                            Object.keys(element).map((i, index) => (
+                                                <View key={index}>
+
+                                                    {(i == 'email' || i == 'approve') ? <></> : <>
+                                                        <TouchableOpacity style={styles.table} onPress={() => { setclicked([count, index]) }} >
+
+                                                            <View style={{ width: Dimensions.get('screen').width / 2.3, borderColor: 'black', borderWidth: 1 }}>
+                                                                <Text style={{ textAlign: 'center', paddingVertical: 10 }}>{i}</Text>
+                                                            </View>
+                                                            <View style={{ width: Dimensions.get('screen').width / 2.3, borderColor: 'black', borderWidth: 1 }}>
+                                                                <Text style={{ textAlign: 'center', paddingVertical: 10 }}>
+                                                                    {element[i].points}
+                                                                </Text>
+                                                            </View>
+
+                                                        </TouchableOpacity>
+                                                        {(clicked[0] == count && clicked[1] == index) ? <>
+                                                            <TouchableOpacity onPress={() => { setclicked(10, 10) }} style={{ width: Dimensions.get('screen').width - 47, borderBottomLeftRadius: 25, borderBottomRightRadius: 25, overflow: 'hidden' }}>
+                                                                <Text style={{ textAlign: 'center', color: 'white', paddingHorizontal: 10, padding: 5, backgroundColor: '#502a2aa8', borderBottomEndRadius: 20, }}>
+                                                                    comments -   {element[i].comments}
+                                                                </Text>
+                                                            </TouchableOpacity>
+                                                        </> : null}
+
+                                                        {/* <Text style={[styles.heading,{margin:5, fontWeight: 'bold' }]}>{i} - {element[i].points}</Text>
+                                            <Text>comments - {element[i].comments}</Text> */}
+                                                    </>}
+                                                </View>
+                                            ))
+                                        }
+                                    </View>
+                                ))}
+                            </Text>
+                            : null}
 
 
 
-                    {/* {(JSON.parse(Udata)['document']).length > 5 ? <>
+                        {/* {(JSON.parse(Udata)['document']).length > 5 ? <>
                         <Button size='sm' color={'green'} title={'Download'}></Button>
                     </> : <>
                     </>} */}
-                    {/* <Button title={'Download'}></Button> */}
+                        {/* <Button title={'Download'}></Button> */}
+                        {/* <View style={styles.subCard}>
+                            <Text style={styles.Tbold}>Paper ID - {JSON.parse(Udata)['paperID']}</Text>
+                            <View style={styles.yon1}>
+                                <Text style={styles.Tbold}>Document Included ? -
+                                </Text>
+                                {(JSON.parse(Udata)['document']).length > 5 ? <>
+                                    <View style={[styles.yon, { backgroundColor: 'green' }]} >
+                                        <Icon name={'done'} size={20} color="#ffffff" />
+                                        <Text style={{ color: 'white' }} >
+                                            yes</Text>
+                                    </View>
+                                </> : <>
+                                    <View style={[styles.yon, { backgroundColor: 'red' }]} >
+                                        <Icon name={'highlight-off'} size={20} color="#ffffff" />
+                                        <Text style={{ color: 'white' }} >
+                                            No</Text>
+                                    </View></>}
+                            </View>
+                            <View style={styles.yon1}>
+                                <Text style={styles.Tbold}>Group Submission ? -
+                                </Text>
+                                {(JSON.parse(Udata)['groupSubmission']) ? <>
+                                    <View style={[styles.yon, { backgroundColor: 'green' }]} >
+                                        <Icon name={'done'} size={20} color="#ffffff" />
+                                        <Text style={{ color: 'white' }} >
+                                            yes</Text>
+                                    </View>
+                                </> : <>
+                                    <View style={[styles.yon, { backgroundColor: 'red' }]} >
+                                        <Icon name={'highlight-off'} size={20} color="#ffffff" />
+                                        <Text style={{ color: 'white' }} >
+                                            No</Text>
+                                    </View></>}
+                            </View>
+                            <View style={styles.yon1}>
+                                <Text style={styles.Tbold}>Status -
+                                </Text>
+                                {(JSON.parse(Udata)['approved']) == "Pending" ? <>
+                                    <View style={[styles.yon, { backgroundColor: '#ffa200' }]} >
+                                        <Icon name={'error'} size={20} color="#ffffff" />
+
+                                        <Text style={{ color: 'white' }} >
+                                            Pending</Text>
+                                    </View>
+                                </> : <>
+                                    {(JSON.parse(Udata)['approved']) == "Approved" ? <>
+                                        <View style={[styles.yon, { backgroundColor: 'green' }]} >
+                                            <Icon name={'check-circle'} size={20} color="#ffffff" />
+
+                                            <Text style={{ color: 'white' }} >
+                                                Approved</Text>
+                                        </View>
+                                    </> : <>
+                                        <View style={[styles.yon, { backgroundColor: 'red' }]} >
+                                            <Icon name={'cancel'} size={20} color="#ffffff" />
+
+                                            <Text style={{ color: 'white' }} >
+                                                Rejected</Text>
+                                        </View></>}</>}
+                            </View>
+                            <Button color={'green'} size="sm" onPress={() => { navigation.navigate('AuthSubmission', { Udata: Udata }) }} title={'More'}></Button>
+                        </View> */}
+                    </> :
+                        <View style={[styles.subCard, { minHeight: 100 }]}>
+                            <Text style={[styles.Tbold, { textAlign: 'center' }]}> No Submissions</Text>
+                        </View>
+                    }
+
                 </View>
             </ScrollView>
             <BottomNav navigation={navigation} />

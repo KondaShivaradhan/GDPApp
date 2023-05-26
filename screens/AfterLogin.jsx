@@ -36,7 +36,7 @@ export default function AfterLogin({ props, route }) {
                 </Drawer.Screen>
                 {/* <Drawer.Screen name="MainScreen" options={{ title: 'Home', headerShown: true }} initialParams={{ myObject }} component={MainScreen} /> */}
                 <Drawer.Screen name="Profile" options={{ title: 'Profile', headerShown: false }}  >
-                {(props) => <Profile {...props} Udata={uemail} type={type} />}
+                {(props) => <Profile {...props} rewData={rewData} Udata={uemail} type={type} />}
                     </Drawer.Screen>
                 <Drawer.Screen name="AuthSubmission" options={{  headerShown: false }} >
                 {(props) => <SubScreen {...props} Udata={uemail} />}

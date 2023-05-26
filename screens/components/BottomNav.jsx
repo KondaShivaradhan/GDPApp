@@ -1,4 +1,4 @@
-import { View, Text, StyleSheet, TouchableOpacity } from 'react-native'
+import { View, Text, StyleSheet, TouchableOpacity,Alert } from 'react-native'
 import React from 'react'
 import { Icon, Image } from '@rneui/themed';
 import { Screen } from 'react-native-screens';
@@ -22,6 +22,26 @@ console.log(type);
         secoundOption = "AuthSubmission"
 
     }
+    const showConfirmDialog = () => {
+        return Alert.alert(
+          "Are your sure?",
+          "Do you want to logout?",
+          [
+            // The "Yes" button
+            {
+              text: "Yes",
+              onPress: () => {
+                navigation.navigate('Login')
+              },
+            },
+            // The "No" button
+            // Does nothing but dismiss the dialog when tapped
+            {
+              text: "No",
+            },
+          ]
+        );
+      };
     return (
         <View style={styles.bottomNav}>
             <TouchableOpacity style={{ zIndex: 1000 }} onPress={() => { navigation.navigate(iniScreen) }}>
@@ -33,8 +53,9 @@ console.log(type);
             <TouchableOpacity style={{ zIndex: 1000 }} onPress={() => { navigation.navigate('Profile') }}>
                 <Icon size={30} name="person" color="green" />
             </TouchableOpacity>
-            <TouchableOpacity style={{ zIndex: 1000 }} onPress={() => { navigation.navigate('Profile') }}>
-                <Icon size={30} name="settings" color="green" />
+            {/* <TouchableOpacity style={{ zIndex: 1000 }} onPress={() => { navigation.navigate('Login') }}> */}
+            <TouchableOpacity style={{ zIndex: 1000 }} onPress={() => {showConfirmDialog()}}>
+                <Icon size={30} name="logout" color="green" />
             </TouchableOpacity>
         </View>
     )
