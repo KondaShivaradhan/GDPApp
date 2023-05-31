@@ -6,17 +6,72 @@ import { ScrollView } from 'react-native-gesture-handler';
 import { Text } from 'react-native';
 import { Button, Icon } from '@rneui/themed';
 import * as FileSystem from 'expo-file-system';
-
-
+import { useEffect } from 'react';
+import * as Notifications from 'expo-notifications';
+Notifications.setNotificationHandler({
+    handleNotification: async () => ({
+        shouldShowAlert: true,
+        shouldPlaySound: false,
+        shouldSetBadge: false,
+    }),
+});
 
 const SubScreen = ({ navigation, Udata }) => {
-    const downloadFile = async (url) => {
-        console.warn(FileSystem.documentDirectory);
-        const fileUri = FileSystem.documentDirectory + 'file.pdf';
-        const downloadObject = FileSystem.createDownloadResumable(url, fileUri);
-        const { uri } = await downloadObject.downloadAsync();
-        console.log('Finished downloading to ', uri);
+
+ 
+    const downloadFromUrl = async (url) => {
+        try {
+            const filename = "file.pdf";
+            const result = await FileSystem.downloadAsync(
+                url,
+                FileSystem.documentDirectory + filename
+            );
+            console.log(result);
+            var downloadF = Parser('lastName') + "_" + Parser('paperID');
+            save(result.uri, `${downloadF + '.pdf'}`, 'application/pdf');
+        } catch (error) {
+            console.log(error);
+        }
     };
+    const save = async (uri, filename, mimetype) => {
+        try {
+            if (Platform.OS === "android") {
+                const permissions = await FileSystem.StorageAccessFramework.requestDirectoryPermissionsAsync();
+                if (permissions.granted) {
+                    const base64 = await FileSystem.readAsStringAsync(uri, { encoding: FileSystem.EncodingType.Base64 });
+                    await FileSystem.StorageAccessFramework.createFileAsync(permissions.directoryUri, filename, mimetype)
+                        .then(async (uri) => {
+                            await FileSystem.writeAsStringAsync(uri, base64, { encoding: FileSystem.EncodingType.Base64 });
+                        })
+                        .catch(e => console.log(e));
+                    const contentUri = `file://${fileUri}`;
+                    const trigger = {
+                        seconds: 1, // Trigger the notification after 10 seconds
+                      };
+                    await Notifications.scheduleNotificationAsync({
+                        content: {
+                            title: 'Download Completed',
+                            body: 'The PDF file has been downloaded successfully.',
+                        },
+                        trigger: trigger,
+                        // attachments: [{ identifier: contentUri, url: contentUri, mimeType: mimetype }],
+                    });
+                } else {
+                    shareAsync(uri);
+                }
+            } else {
+                shareAsync(uri);
+            }
+        } catch (error) {
+
+        }
+
+    };
+ 
+    // total calculator
+    const [Rtotal, setRtotal] = useState([]);
+    var GrandTotal = 0
+    const [gTotal, setgTotal] = useState(0);
     const [clicked, setclicked] = useState([10, 10]);
     console.log("in Author SUbmision Screen");
     console.log(Udata);
@@ -24,7 +79,30 @@ const SubScreen = ({ navigation, Udata }) => {
         console.log(JSON.parse(Udata)[field]);
         return `${JSON.parse(Udata)[field]}`
     }
-    const temp = { "lastName": "Maram", "groupEmail": "", "wantToAttend": false, "areaOfInterest": "Electricity data,Data mining,Air pollution index method", "payementStatus": "", "groupSubmission": false, "reviewers": [], "firstName": "Prathyusha", "password": "123456", "approved": "Pending", "confirmPassword": "123456", "reviewerApproval": [], "email": "prathyu.maram@gmail.com", "document": "https://res.cloudinary.com/dd1uzjqg8/image/upload/v1684788225/1684788225107.pdf", "otherKeyword": "Electricity data,Data mining,Air pollution index method", "abstract": "The continuous development of society has destroyed the living environment of human beings to a\nlarge extent. The problem of air pollution is becoming more and more serious, which affects people’s\ndaily life and threatens human health and the natural environment. It is very important to evaluate\nand prevent air pollution. The existing atmospheric environmental pollution assessment system has\nproblems such as low accuracy of prediction results and incomplete analysis of problems, resulting\nin untimely prevention and control of regional atmospheric environmental pollution. This paper\nanalyzes the needs of atmospheric environment data mining, monitoring the prevention and control\nof atmospheric environment pollution, using data mining technology combined with power data to\nevaluate and prevent air pollution. Through the real-time detection and evaluation of the regional\nenvironmental pollution index, it is possible to carry out timely treatment when the atmospheric\nenvironmental pollution does not meet the standard. Through the prediction accuracy test, the\nenvironmental pollution index test, the atmospheric environment quality score test and the prevention\nand control effect test in different regions, it is found that the data mining technology is used for\nprevention and control. The prediction accuracy increased by 4.18%, and the environmental pollution\nindex decreased. It is more conducive to the control of regional atmospheric pollution, the rate of\natmospheric environmental quality score has been increased by 2.38%, and the control effect has been optimized by 3.1%. Data mining technology is more conducive to the assessment and prevention of regional air pollution.", "keyword": [{ "label": "Other", "value": "Other" }], "title": "Application of data mining combined with power data in assessment and prevention of regional atmospheric pollution", "paperID": "003", "updatedAt": 1684788240726 }
+    useEffect(() => {
+        let total = 0;
+        var index = 0
+        var eachRpoints = [0, 0, 0]
+        JSON.parse(Udata).reviewerApproval.forEach((element) => {
+            Object.keys(element).forEach((i) => {
+                if (i !== 'email' && i !== 'approve') {
+                    total += Number(element[i].points);
+                    console.log(total);
+
+                }
+                eachRpoints[index] = Number(total)
+            });
+            index++
+            total = 0
+        });
+        console.log(eachRpoints);
+        eachRpoints.forEach(e => {
+            GrandTotal = e + GrandTotal
+        })
+        setgTotal(GrandTotal)
+        setRtotal(eachRpoints);
+    }, [Udata]);
+
     return (
         <>
             <TopNav navigation={navigation} />
@@ -35,8 +113,7 @@ const SubScreen = ({ navigation, Udata }) => {
                         <Text style={styles.textSetting}>
                             <Text style={styles.heading}>PaperID -</Text>
                             {Parser('paperID')}</Text>
-
-                        <Text style={styles.textSetting}>
+                        <Text style={[styles.textSetting]}>
                             <Text style={styles.heading}>Title -</Text>
                             {Parser('title')}</Text>
                         {/* <Text style={styles.textSetting}>
@@ -66,21 +143,25 @@ const SubScreen = ({ navigation, Udata }) => {
                         <View style={styles.yon1}>
                             <Text style={styles.heading}>Document Included ? -
                             </Text>
-                            {(JSON.parse(Udata)['document']).length > 5 ? <>
+                            {(JSON.parse(Udata)['document']).length > 5 ? <View style={{}}>
                                 <View style={[styles.yon, { backgroundColor: 'green' }]} >
                                     <Icon name={'done'} size={20} color="#ffffff" />
                                     <Text style={{ color: 'white' }} >
                                         yes</Text>
                                 </View>
-                                <Button onPress={() => downloadFile(JSON.parse(Udata)['document'])} title={'download file'}></Button>
 
-                            </> : <>
+                            </View> : <>
                                 <View style={[styles.yon, { backgroundColor: 'red' }]} >
                                     <Icon name={'highlight-off'} size={20} color="#ffffff" />
                                     <Text style={{ color: 'white' }} >
                                         No</Text>
                                 </View></>}
                         </View>
+                        {(JSON.parse(Udata)['document']).length > 5 ?
+                            <View style={{ width: 100, marginLeft: 15, }}>
+                                <Button color={'green'} size='sm' radius={'25'} onPress={() => downloadFromUrl(JSON.parse(Udata)['document'])} title={'Download'}></Button>
+                            </View> :
+                            null}
                         <View style={styles.yon1}>
                             <Text style={styles.heading}>Status -
                             </Text>
@@ -103,10 +184,6 @@ const SubScreen = ({ navigation, Udata }) => {
                                             Rejected</Text>
                                     </View></>}</>}
                         </View>
-                        {JSON.parse(Udata)['reviewerApproval'].forEach(element => {
-                            <Text>Came Here</Text>
-                        })}
-                        {/* {(JSON.parse(Udata)['approved'] == 'Approved') ? */}
                         {(true) ?
                             <Text style={styles.textSetting}>
                                 {(JSON.parse(Udata)['reviewerApproval']).map((element, count) => (
@@ -114,8 +191,8 @@ const SubScreen = ({ navigation, Udata }) => {
                                     <View key={count} style={styles.rewF}>
                                         <Text style={[{
                                             textAlign: 'center', color: 'green',
-                                            fontWeight: 'bold', marginTop: 10,
-                                        }]}>{count + 1} Reviewer Feedback</Text>
+                                            fontWeight: 'bold', marginVertical: 10,
+                                        }]}>Reviewer {count + 1} Feedback </Text>
                                         {
                                             Object.keys(element).map((i, index) => (
                                                 <View key={index}>
@@ -128,7 +205,7 @@ const SubScreen = ({ navigation, Udata }) => {
                                                             </View>
                                                             <View style={{ width: Dimensions.get('screen').width / 2.3, borderColor: 'black', borderWidth: 1 }}>
                                                                 <Text style={{ textAlign: 'center', paddingVertical: 10 }}>
-                                                                    {element[i].points}
+                                                                    {element[i].points}/10
                                                                 </Text>
                                                             </View>
 
@@ -144,83 +221,32 @@ const SubScreen = ({ navigation, Udata }) => {
                                                         {/* <Text style={[styles.heading,{margin:5, fontWeight: 'bold' }]}>{i} - {element[i].points}</Text>
                                             <Text>comments - {element[i].comments}</Text> */}
                                                     </>}
+
                                                 </View>
+
                                             ))
                                         }
-                                    </View>
-                                ))}
-                            </Text>
-                            : null}
-
-
-
-                        {/* {(JSON.parse(Udata)['document']).length > 5 ? <>
-                        <Button size='sm' color={'green'} title={'Download'}></Button>
-                    </> : <>
-                    </>} */}
-                        {/* <Button title={'Download'}></Button> */}
-                        {/* <View style={styles.subCard}>
-                            <Text style={styles.Tbold}>Paper ID - {JSON.parse(Udata)['paperID']}</Text>
-                            <View style={styles.yon1}>
-                                <Text style={styles.Tbold}>Document Included ? -
-                                </Text>
-                                {(JSON.parse(Udata)['document']).length > 5 ? <>
-                                    <View style={[styles.yon, { backgroundColor: 'green' }]} >
-                                        <Icon name={'done'} size={20} color="#ffffff" />
-                                        <Text style={{ color: 'white' }} >
-                                            yes</Text>
-                                    </View>
-                                </> : <>
-                                    <View style={[styles.yon, { backgroundColor: 'red' }]} >
-                                        <Icon name={'highlight-off'} size={20} color="#ffffff" />
-                                        <Text style={{ color: 'white' }} >
-                                            No</Text>
-                                    </View></>}
-                            </View>
-                            <View style={styles.yon1}>
-                                <Text style={styles.Tbold}>Group Submission ? -
-                                </Text>
-                                {(JSON.parse(Udata)['groupSubmission']) ? <>
-                                    <View style={[styles.yon, { backgroundColor: 'green' }]} >
-                                        <Icon name={'done'} size={20} color="#ffffff" />
-                                        <Text style={{ color: 'white' }} >
-                                            yes</Text>
-                                    </View>
-                                </> : <>
-                                    <View style={[styles.yon, { backgroundColor: 'red' }]} >
-                                        <Icon name={'highlight-off'} size={20} color="#ffffff" />
-                                        <Text style={{ color: 'white' }} >
-                                            No</Text>
-                                    </View></>}
-                            </View>
-                            <View style={styles.yon1}>
-                                <Text style={styles.Tbold}>Status -
-                                </Text>
-                                {(JSON.parse(Udata)['approved']) == "Pending" ? <>
-                                    <View style={[styles.yon, { backgroundColor: '#ffa200' }]} >
-                                        <Icon name={'error'} size={20} color="#ffffff" />
-
-                                        <Text style={{ color: 'white' }} >
-                                            Pending</Text>
-                                    </View>
-                                </> : <>
-                                    {(JSON.parse(Udata)['approved']) == "Approved" ? <>
-                                        <View style={[styles.yon, { backgroundColor: 'green' }]} >
-                                            <Icon name={'check-circle'} size={20} color="#ffffff" />
-
-                                            <Text style={{ color: 'white' }} >
-                                                Approved</Text>
+                                        <View style={styles.table}>
+                                            <View style={{ width: Dimensions.get('screen').width / 2.3, borderColor: 'black', borderWidth: 1 }}>
+                                                <Text style={{ textAlign: 'center', paddingVertical: 10, color: 'green', fontWeight: 'bold' }}>Total</Text>
+                                            </View>
+                                            <View style={{ width: Dimensions.get('screen').width / 2.3, borderColor: 'black', borderWidth: 1 }}>
+                                                <Text style={{ textAlign: 'center', paddingVertical: 10, fontWeight: 'bold' }}>
+                                                    {Rtotal[count]}/50
+                                                </Text>
+                                            </View>
                                         </View>
-                                    </> : <>
-                                        <View style={[styles.yon, { backgroundColor: 'red' }]} >
-                                            <Icon name={'cancel'} size={20} color="#ffffff" />
 
-                                            <Text style={{ color: 'white' }} >
-                                                Rejected</Text>
-                                        </View></>}</>}
-                            </View>
-                            <Button color={'green'} size="sm" onPress={() => { navigation.navigate('AuthSubmission', { Udata: Udata }) }} title={'More'}></Button>
-                        </View> */}
+                                    </View>
+
+                                ))}
+                                {gTotal != 0 && <View style={{ width: Dimensions.get('screen').width - 45 }}>
+                                    <Text style={[styles.Tbold]}>Grand Total - {gTotal}</Text>
+                                </View>}
+
+                            </Text>
+
+                            : null}
                     </> :
                         <View style={[styles.subCard, { minHeight: 100 }]}>
                             <Text style={[styles.Tbold, { textAlign: 'center' }]}> No Submissions</Text>
@@ -235,6 +261,12 @@ const SubScreen = ({ navigation, Udata }) => {
 }
 
 const styles = StyleSheet.create({
+    Tbold: {
+        textAlign: 'center',
+        color: 'green',
+        fontWeight: 'bold',
+        marginVertical: 10
+    },
     textSetting: {
         margin: 15,
     },
@@ -244,7 +276,9 @@ const styles = StyleSheet.create({
         margin: 10,
         marginBottom: 150,
         // borderWidth: 2,
+        // alignItems: 'center',
         borderColor: 'green',
+        gap: 1,
         borderRadius: 28,
     },
     table: {
@@ -264,7 +298,7 @@ const styles = StyleSheet.create({
         flexWrap: 'nowrap',
         alignItems: 'center',
         marginHorizontal: 15,
-        marginVertical: 5,
+        marginVertical: 10,
     },
     yon: {
 
